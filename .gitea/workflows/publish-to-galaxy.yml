@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: docker
     container:
-      image: python:3.12-slim
+      image: ubuntu-latest
 
     steps:
       - name: Checkout repository

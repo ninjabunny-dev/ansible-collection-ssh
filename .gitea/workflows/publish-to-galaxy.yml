@@ -7,22 +7,19 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:24.04
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: update apt
-        run: sudo apt update
-
-      - name: Install pipx
-        run: sudo apt install pipx
-
-      - name: Add pipx to path
-        run: pipx ensurepath
-
-      - name: Install Ansible
-        run: pipx install --include-deps ansible
+      - name: Install pipx and dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3 python3-pip python3-venv pipx
+          pipx ensurepath
+          export PATH="$PATH:/root/.local/bin"
+          pipx install --include-deps ansible
 
       - name: Verify collection structure
         run: |
@@ -33,13 +30,15 @@ jobs:
 
       - name: Build the collection
         run: |
+          export PATH="$PATH:/root/.local/bin"
           mkdir -p dist
           ansible-galaxy collection build --output-path dist/
 
       - name: Publish to Ansible Galaxy
         env:
-          ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
+          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
         run: |
+          export PATH="$PATH:/root/.local/bin"
           FILE=$(ls dist/*.tar.gz)
-          echo "Publishing $FILE to Ansible Galaxy..."
+          echo "📦 Publishing $FILE to Ansible Galaxy..."
           ansible-galaxy collection publish "$FILE" --token "$ANSIBLE_GALAXY_TOKEN"

@@ -1,0 +1,39 @@
+name: Publish to Ansible Galaxy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: docker
+    container:
+      image: python:3.12-slim
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: pip install ansible-core
+
+      - name: Verify collection structure
+        run: |
+          if [ ! -f galaxy.yml ]; then
+            echo "galaxy.yml not found! Make sure you're in the collection root."
+            exit 1
+          fi
+
+      - name: Build the collection
+        run: |
+          mkdir -p dist
+          ansible-galaxy collection build --output-path dist/
+
+      - name: Publish to Ansible Galaxy
+        env:
+          ANSIBLE_GALAXY_API_KEY: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
+        run: |
+          FILE=$(ls dist/*.tar.gz)
+          echo "Publishing $FILE to Ansible Galaxy..."
+          ansible-galaxy collection publish "$FILE" --token "$ANSIBLE_GALAXY_TOKEN"

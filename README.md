@@ -1,3 +1,3 @@
-# ansible-collection-ssh
+# Ansible Collection - ninjabunny_dev.ssh
 
-SSH Ansible Collection
+Documentation for the collection.
